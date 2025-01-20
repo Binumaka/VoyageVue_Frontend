@@ -5,7 +5,13 @@ module.exports = {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        inter: ['"Inter"', 'sans-serif'],
+        inriaSans:['"Inria Sans"','sans-serif'],
+        Aladin:['"Aladin"','sans-serif'],
+      },
+    },
   },
   plugins: [],
 };
