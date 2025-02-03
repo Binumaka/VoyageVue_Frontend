@@ -1,13 +1,17 @@
 import axios from "axios";
 import React, { useState } from "react";
-import Navbar from "../components/adminNavbar";
+import Navbar from "../private/components/adminNavbar";
 
 const UploadDestination = () => {
   const [destinationData, setFormData] = useState({
     title: "",
     description: "",
     image: null,
+    image1: null,
+    image2: null,
     category: "",
+    bestTimeToVisit: "",
+    location: "",
     section: "TopDestination", // Default value
   });
   const [imagePreview, setImagePreview] = useState(null); // For image preview
@@ -101,10 +105,70 @@ const UploadDestination = () => {
                   <img
                     src={imagePreview}
                     alt="Preview"
-                    className="w-full h-48 object-cover rounded"
+                    className="w-full h-48 object-contain rounded"
                   />
                 </div>
               )}
+            </div>
+            <div>
+              <input
+                type="file"
+                name="image1"
+                onChange={handleFileChange}
+                placeholder="Image1"
+                required
+                className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              {imagePreview && (
+                <div className="mt-4">
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    className="w-full h-48 object-contain rounded"
+                  />
+                </div>
+              )}
+            </div>
+            <div>
+              <input
+                type="file"
+                name="image2"
+                onChange={handleFileChange}
+                placeholder="Image2"
+                required
+                className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              {imagePreview && (
+                <div className="mt-4">
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    className="w-full h-48 object-contain rounded"
+                  />
+                </div>
+              )}
+            </div>
+            <div>
+              <input
+                type="text"
+                name="bestTimeToVisit"
+                value={destinationData.bestTimeToVisit}
+                onChange={handleInputChange}
+                placeholder="Best Time To Visit"
+                required
+                className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <input
+                type="text"
+                name="location"
+                value={destinationData.location}
+                onChange={handleInputChange}
+                placeholder="Location"
+                required
+                className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
             </div>
             <div>
               <input
