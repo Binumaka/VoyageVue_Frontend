@@ -1,7 +1,7 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import Navbar from "../../components/adminNavbar";
+import Navbar from "../../private/components/adminNavbar";
 
 const GuideList = () => {
   const [guides, setGuides] = useState([]);
