@@ -1,7 +1,7 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify"; // Ensure you have react-toastify installed and configured
-import Navbar from "../components/adminNavbar";
+import Navbar from "../private/components/adminNavbar";
 
 const UserList = () => {
   const [users, setUsers] = useState([]);
@@ -11,7 +11,11 @@ const UserList = () => {
     const fetchUsers = async () => {
       try {
         const response = await axios.get("/api/user");
-        setUsers(response.data);
+        // Filter out admin users
+        const filteredUsers = response.data.filter(
+          (user) => user.role !== "admin"
+        );
+        setUsers(filteredUsers);
       } catch (error) {
         console.error("Error fetching users:", error);
         toast.error("Failed to fetch users");
