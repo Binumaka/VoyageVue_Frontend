@@ -1,31 +1,57 @@
-import axios from "axios";
 import React, { useState } from "react";
-import Navbar from "../components/adminNavbar";
+import axios from "axios";
+import Navbar from "../private/components/adminNavbar";
 
 const UploadTourPackage = () => {
-  const [tourData, setFormData] = useState({
+  const [tourData, setTourData] = useState({
     title: "",
     image: null,
-    highlights: "",
-    itinerary: "",
+    image1: null,
+    highlights: [],
+    itinerary: [],
     price: "",
     duration: "",
     description: "",
   });
 
-  const [imagePreview, setImagePreview] = useState(null); 
+  const [imagePreview, setImagePreview] = useState(null);
+  const [imagePreview1, setImagePreview1] = useState(null);
 
   // Handle form input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setTourData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Handle array inputs (highlights, itinerary)
+  const handleArrayChange = (e, field) => {
+    const { name, value } = e.target;
+    const updatedField = [...tourData[field]];
+
+    if (name === "day" || name === "description") {
+      const index = updatedField.length;
+      updatedField.push({
+        day: name === "day" ? value : updatedField[index]?.day,
+        description: name === "description" ? value : updatedField[index]?.description,
+      });
+    }
+
+    setTourData((prev) => ({ ...prev, [field]: updatedField }));
+  };
+
+  // Handle file input changes
   const handleFileChange = (e) => {
+    const { name } = e.target;
     const file = e.target.files[0];
+
     if (file) {
-      setFormData((prev) => ({ ...prev, image: file }));
-      setImagePreview(URL.createObjectURL(file)); // Preview the image
+      setTourData((prev) => ({ ...prev, [name]: file }));
+
+      if (name === "image") {
+        setImagePreview(URL.createObjectURL(file));
+      } else if (name === "image1") {
+        setImagePreview1(URL.createObjectURL(file));
+      }
     }
   };
 
@@ -35,26 +61,35 @@ const UploadTourPackage = () => {
 
     const formData = new FormData();
     Object.keys(tourData).forEach((key) => {
-      formData.append(key, tourData[key]);
+      if (Array.isArray(tourData[key])) {
+        formData.append(key, JSON.stringify(tourData[key])); // Convert array to JSON string
+      } else {
+        formData.append(key, tourData[key]);
+      }
     });
 
     try {
-      await axios.post("/api/packages/save", formData, {
+      await axios.post("/api/packages/create", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
+
       alert("Tour Package uploaded successfully!");
-      setFormData({
+
+      setTourData({
         title: "",
         image: null,
-        highlights: "",
-        itinerary: "",
+        image1: null,
+        highlights: [],
+        itinerary: [],
         price: "",
         duration: "",
         description: "",
       });
+
       setImagePreview(null);
+      setImagePreview1(null);
     } catch (error) {
       console.error("Error uploading tour package:", error);
       alert("Failed to upload tour package. Please try again.");
@@ -70,23 +105,23 @@ const UploadTourPackage = () => {
             Upload Tour Package
           </h2>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <input
-                type="text"
-                name="title"
-                value={tourData.title}
-                onChange={handleInputChange}
-                placeholder="Package Name"
-                required
-                className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+            {/* Title */}
+            <input
+              type="text"
+              name="title"
+              value={tourData.title}
+              onChange={handleInputChange}
+              placeholder="Package Name"
+              required
+              className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+
+            {/* Image Upload */}
             <div>
               <input
                 type="file"
                 name="image"
                 onChange={handleFileChange}
-                placeholder="Image"
                 required
                 className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
@@ -100,66 +135,102 @@ const UploadTourPackage = () => {
                 </div>
               )}
             </div>
+
+            {/* Second Image Upload */}
             <div>
               <input
-                type="text"
-                name="highlights"
-                value={tourData.highlights}
-                onChange={handleInputChange}
-                placeholder="Highlights"
-                className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <input
-                type="text"
-                name="itinerary"
-                value={tourData.itinerary}
-                onChange={handleInputChange}
-                placeholder="Itinerary"
-                className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <input
-                type="number"
-                name="price"
-                value={tourData.price}
-                onChange={handleInputChange}
-                placeholder="Price (in USD)"
+                type="file"
+                name="image1"
+                onChange={handleFileChange}
                 required
                 className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
+              {imagePreview1 && (
+                <div className="mt-4">
+                  <img
+                    src={imagePreview1}
+                    alt="Preview"
+                    className="w-full h-48 object-cover rounded"
+                  />
+                </div>
+              )}
             </div>
+
+            {/* Highlights */}
             <div>
               <input
                 type="text"
-                name="duration"
-                value={tourData.duration}
-                onChange={handleInputChange}
-                placeholder="Duration (e.g., 5 days, 1 week)"
-                required
+                name="day"
+                placeholder="Day"
+                onChange={(e) => handleArrayChange(e, "highlights")}
                 className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-            </div>
-            <div>
-              <textarea
+              <input
+                type="text"
                 name="description"
-                value={tourData.description}
-                onChange={handleInputChange}
-                placeholder="Package Description"
-                required
+                placeholder="Highlight Description"
+                onChange={(e) => handleArrayChange(e, "highlights")}
                 className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-              ></textarea>
+              />
             </div>
+
+            {/* Itinerary */}
             <div>
-              <button
-                type="submit"
-                className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 focus:outline-none"
-              >
-                Upload
-              </button>
+              <input
+                type="text"
+                name="day"
+                placeholder="Day"
+                onChange={(e) => handleArrayChange(e, "itinerary")}
+                className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <input
+                type="text"
+                name="description"
+                placeholder="Itinerary Description"
+                onChange={(e) => handleArrayChange(e, "itinerary")}
+                className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
             </div>
+
+            {/* Price */}
+            <input
+              type="number"
+              name="price"
+              value={tourData.price}
+              onChange={handleInputChange}
+              placeholder="Price (in USD)"
+              required
+              className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+
+            {/* Duration */}
+            <input
+              type="text"
+              name="duration"
+              value={tourData.duration}
+              onChange={handleInputChange}
+              placeholder="Duration (e.g., 5 days, 1 week)"
+              required
+              className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+
+            {/* Description */}
+            <textarea
+              name="description"
+              value={tourData.description}
+              onChange={handleInputChange}
+              placeholder="Package Description"
+              required
+              className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            ></textarea>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 focus:outline-none"
+            >
+              Upload
+            </button>
           </form>
         </div>
       </div>

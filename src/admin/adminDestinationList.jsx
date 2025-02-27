@@ -1,9 +1,9 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
-import Navbar from "../components/adminNavbar";
 import { useNavigate } from "react-router-dom"; // Import useNavigate for navigation
+import Navbar from "../private/components/adminNavbar";
 
-const AdminDashboard = () => {
+const AdminDestinationList = () => {
   const [destinations, setDestinations] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate(); // Hook for navigation
@@ -65,7 +65,7 @@ const AdminDashboard = () => {
                 <img
                   src={
                     "http://localhost:3000/destinations_image/" +
-                    destination.image || "https://via.placeholder.com/150"
+                      destination.image || "https://via.placeholder.com/150"
                   }
                   alt={destination.title}
                   className="w-full h-full object-cover"
@@ -100,4 +100,4 @@ const AdminDashboard = () => {
   );
 };
 
-export default AdminDashboard;
+export default AdminDestinationList;
