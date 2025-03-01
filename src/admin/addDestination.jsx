@@ -1,6 +1,6 @@
 import axios from "axios";
 import React, { useState } from "react";
-import Navbar from "../private/components/adminNavbar";
+import AdminNavbar from "./adminNavbar";
 
 const UploadDestination = () => {
   const [destinationData, setFormData] = useState({
@@ -62,8 +62,8 @@ const UploadDestination = () => {
   };
 
   return (
-    <div>
-      <Navbar />
+    <div className="ml-64 p-6">
+      <AdminNavbar />
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
         <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-8">
           <h2 className="text-2xl font-bold text-center mb-6">
