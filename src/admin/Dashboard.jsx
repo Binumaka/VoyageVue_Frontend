@@ -1,274 +1,227 @@
+import React, { useState, useEffect } from "react";
+import { Outlet } from "react-router-dom";
 import axios from "axios";
-import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Users, MapPin, ClipboardList, UserCheck, Calendar, CreditCard, Map } from "lucide-react";
+import AdminNavbar from "./adminNavbar";
 
 const AdminDashboard = () => {
-  const [bookings, setBookings] = useState([]);
+  const [topDestinations, setTopDestinations] = useState([]);
   const [users, setUsers] = useState([]);
+  const [bookings, setBookings] = useState([]);
   const [guides, setGuides] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("bookings");
-  const navigate = useNavigate();
+  const [stats, setStats] = useState({ revenue: 0, pendingBookings: 0 });
 
   useEffect(() => {
-    fetchBookings();
-    fetchUsers();
-    fetchGuides();
+    axios.get(`/api/destination/section/TopDestination`)
+      .then(res => setTopDestinations(res.data))
+      .catch(err => console.error("Error fetching destinations:", err));
+    
+    axios.get("/api/user")
+      .then(response => {
+        // Filter out admin users
+        const filteredUsers = response.data.filter(
+          (user) => user.role !== "admin"
+        );
+        setUsers(filteredUsers);
+      })
+      .catch(err => console.error("Error fetching users:", err));
+    
+    axios.get("/api/booking")
+      .then(res => {
+        setBookings(res.data);
+        // Calculate stats
+        const totalRevenue = res.data.reduce((sum, booking) => sum + (booking.totalPrice || 0), 0);
+        const pending = res.data.filter(booking => booking.status === "pending").length;
+        setStats({ revenue: totalRevenue, pendingBookings: pending });
+      })
+      .catch(err => console.error("Error fetching bookings:", err));
+    
+    axios.get("/api/guides")
+      .then(res => setGuides(res.data))
+      .catch(err => console.error("Error fetching guides:", err));
   }, []);
 
-  const fetchBookings = async () => {
-    setIsLoading(true);
-    try {
-      const response = await axios.get("/api/booking");
-      setBookings(response.data);
-    } catch (error) {
-      console.error("Error fetching bookings:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const fetchUsers = async () => {
-    setIsLoading(true);
-    try {
-      const response = await axios.get("/api/users");
-      setUsers(response.data);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const fetchGuides = async () => {
-    setIsLoading(true);
-    try {
-      const response = await axios.get("/api/guides");
-      setGuides(response.data);
-    } catch (error) {
-      console.error("Error fetching guides:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this item?")) {
-      try {
-        await axios.delete(`/api/${activeTab}/${id}`);
-        if (activeTab === "bookings") {
-          setBookings(bookings.filter((item) => item._id !== id));
-        } else if (activeTab === "users") {
-          setUsers(users.filter((item) => item._id !== id));
-        } else if (activeTab === "guides") {
-          setGuides(guides.filter((item) => item._id !== id));
-        }
-      } catch (error) {
-        console.error("Error deleting:", error);
-      }
-    }
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/login");
-  };
-
   return (
-    <div className="flex flex-col h-screen">
-      <div className="flex flex-1">
-        {/* Sidebar */}
-        
-        <div className="w-64 bg-gray-600 text-white p-6">
-          <nav>
-            <div className="text-3xl text-center text-blue-100 font-medium font-inriaSans ">
-            <p> VoyageVue</p>
+    <div className="flex h-screen bg-gray-100">
+      {/* Sidebar (AdminNavbar) */}
+      <div className="w-64 bg-indigo-900 text-white fixed h-full">
+        <AdminNavbar />
+      </div>
+
+      {/* Main Content */}
+      <div className="ml-64 p-6 flex-1 overflow-auto">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
+        </div>
+
+        {/* Stats Overview */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <DashboardCard 
+            title="Total Users" 
+            value={users.length} 
+            icon={<Users size={24} className="text-indigo-600" />} 
+            trend="+12% from last month"
+            trendUp={true}
+          />
+          <DashboardCard 
+            title="Total Bookings" 
+            value={bookings.length} 
+            icon={<ClipboardList size={24} className="text-green-600" />} 
+            trend="+5% from last month"
+            trendUp={true}
+          />
+          <DashboardCard 
+            title="Total Revenue" 
+            value={`$${stats.revenue.toFixed(2)}`} 
+            icon={<CreditCard size={24} className="text-blue-600" />} 
+            trend="+8% from last month"
+            trendUp={true}
+          />
+          <DashboardCard 
+            title="Pending Bookings" 
+            value={stats.pendingBookings} 
+            icon={<Calendar size={24} className="text-amber-600" />} 
+            trend="-3% from last month"
+            trendUp={false}
+          />
+        </div>
+
+        {/* Destinations & Bookings Sections */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* Top Destinations with images */}
+          <div className="bg-white rounded-xl shadow-md overflow-hidden">
+            <div className="p-5 border-b">
+              <h2 className="text-xl font-semibold flex items-center">
+                <MapPin className="mr-2 text-red-500" size={20} />
+                Top Destinations
+              </h2>
             </div>
-            <div className=" p-6">
-            <div
-              className="px-6 py-3 flex items-center hover:bg-blue-700 cursor-pointer"
-              onClick={() => navigate("/destinations")}
-            >
-              <span>Destinations </span>
+            <div className="p-5 overflow-auto max-h-96">
+              <div className="grid grid-cols-1 gap-4">
+                {topDestinations.map((dest, index) => (
+                  <div key={dest._id || index} className="flex border rounded-lg overflow-hidden">
+                    <div className="w-1/3 h-32">
+                      {dest.image ? (
+                        <img 
+                          src={`http://localhost:3000/destinations_image/${dest.image}`}
+                          alt={dest.name} 
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                          <Map size={32} className="text-gray-400" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="w-2/3 p-3">
+                      <h3 className="font-semibold text-lg">{dest.title}</h3>
+                      <p className="text-sm text-gray-600 mb-2">{dest.location}</p>
+                      <div className="flex justify-between items-center">
+                        <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
+                          {dest.category || "Adventure"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div
-              className="px-6 py-3 flex items-center hover:bg-blue-700 cursor-pointer"
-              onClick={() => navigate("/admintourpackages")}
-            >
-              <span>Tour Packages </span>
+          </div>
+
+          {/* Recent Bookings with images */}
+          <div className="bg-white rounded-xl shadow-md overflow-hidden">
+            <div className="p-5 border-b">
+              <h2 className="text-xl font-semibold flex items-center">
+                <ClipboardList className="mr-2 text-green-500" size={20} />
+                Bookings
+              </h2>
             </div>
-            <div
-              className="px-6 py-3 flex items-center hover:bg-blue-700 cursor-pointer"
-              onClick={() => navigate("/bookingAdmin")}
-            >
-              <span>Bookings </span>
+            <div className="p-5 overflow-auto max-h-96">
+              {bookings.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <ClipboardList className="mx-auto mb-3 h-12 w-12 text-gray-300" />
+                  <p>No bookings available</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-4">
+                  {bookings.slice(0, 5).map((booking, index) => (
+                    <div key={booking._id || index} className="flex border rounded-lg overflow-hidden">
+                      <div className="w-1/3 h-32">
+                        {booking.accommodationId && booking.accommodationId.image ? (
+                          <img 
+                            src={`http://localhost:3000/uploads/${booking.accommodationId.image}`}
+                            alt={booking.accommodationId.title || "Accommodation"} 
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                            <Map size={32} className="text-gray-400" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="w-2/3 p-3">
+                        <h3 className="font-semibold">
+                          {booking.destinationId?.title || booking.accommodationId?.title || "Unnamed Booking"}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          Booked by: {booking.userId?.username || "Anonymous"}
+                        </p>
+                        <div className="flex justify-between items-center mt-2">
+                          <div>
+                            <p className="text-xs text-gray-500">
+                              {booking.checkInDate ? new Date(booking.checkInDate).toLocaleDateString() : "N/A"} - 
+                              {booking.checkOutDate ? new Date(booking.checkOutDate).toLocaleDateString() : "N/A"}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {booking.guests || 1} guests
+                            </p>
+                          </div>
+                          <div>
+                            <span className={`px-2 py-1 rounded text-xs font-medium
+                              ${getStatusClass(booking)}`}>
+                              {getBookingStatus(booking)}
+                            </span>
+                          </div>
+                        </div>
+                        <p className="text-sm font-bold text-indigo-600 mt-1">
+                          ${booking.totalPrice ? booking.totalPrice.toFixed(2) : "N/A"}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-            <div
-              className="px-6 py-3 flex items-center hover:bg-blue-700 cursor-pointer"
-              onClick={() => navigate("/userlist")}
-            >
-              <span>User List</span>
-            </div>
-            <div
-              className="px-6 py-3 flex items-center hover:bg-blue-700 cursor-pointer"
-              onClick={() => navigate("/guide")}
-            >
-              <span>Guide List</span>
-            </div>
-            </div>
-          </nav>
-          <div className="absolute bottom-0 w-64 p-6">
-            <button
-              onClick={handleLogout}
-              className="flex items-center text-white opacity-75 hover:opacity-100"
-            >
-              <span>Logout</span>
-            </button>
           </div>
         </div>
 
-        {/* Main Content */}
-        <div className="flex-1 overflow-auto p-6">
-          {/* Header for Active Tab */}
-          <header className="mb-4">
-            <h2 className="text-xl font-semibold text-gray-800">
-              {activeTab === "bookings" && "Booking Management"}
-              {activeTab === "users" && "User Management"}
-              {activeTab === "guides" && "Guide Management"}
-            </h2>
-            {activeTab === "bookings" && (
-              <Link
-                to="/add-booking"
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center"
-              >
-                Add Booking
-              </Link>
-            )}
-            {activeTab === "users" && (
-              <Link
-                to="/add-user"
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center"
-              >
-                Add User
-              </Link>
-            )}
-            {activeTab === "guides" && (
-              <Link
-                to="/add-guide"
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center"
-              >
-                Add Guide
-              </Link>
-            )}
-          </header>
-
-          {/* Main Table Content */}
-          {isLoading ? (
-            <div className="text-center">Loading...</div>
-          ) : (
-            <div>
-              {activeTab === "bookings" && (
-                <table className="min-w-full bg-white shadow-md rounded-lg">
-                  <thead>
+        {/* Users & Guides */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <DashboardSection title="User List" icon={<Users size={18} className="text-blue-600" />}>
+            <div className="overflow-auto max-h-64">
+              {users.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <Users className="mx-auto mb-3 h-12 w-12 text-gray-300" />
+                  <p>No users available</p>
+                </div>
+              ) : (
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left">Booking ID</th>
-                      <th className="px-6 py-3 text-left">Customer</th>
-                      <th className="px-6 py-3 text-left">Destination</th>
-                      <th className="px-6 py-3 text-left">Travel Date</th>
-                      <th className="px-6 py-3 text-left">Amount</th>
-                      <th className="px-6 py-3 text-left">Status</th>
-                      <th className="px-6 py-3 text-left">Actions</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                     </tr>
                   </thead>
-                  <tbody>
-                    {bookings.map((booking) => (
-                      <tr key={booking._id}>
-                        <td className="px-6 py-3">{booking._id}</td>
-                        <td className="px-6 py-3">{booking.customerName}</td>
-                        <td className="px-6 py-3">{booking.destination}</td>
-                        <td className="px-6 py-3">{booking.travelDate}</td>
-                        <td className="px-6 py-3">{booking.amount}</td>
-                        <td className="px-6 py-3">{booking.status}</td>
-                        <td className="px-6 py-3 flex space-x-2">
-                          <button className="bg-yellow-500 text-white px-4 py-2 rounded">
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDelete(booking._id)}
-                            className="bg-red-500 text-white px-4 py-2 rounded"
-                          >
-                            Delete
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-
-              {activeTab === "users" && (
-                <table className="min-w-full bg-white shadow-md rounded-lg">
-                  <thead>
-                    <tr>
-                      <th className="px-6 py-3 text-left">User ID</th>
-                      <th className="px-6 py-3 text-left">Name</th>
-                      <th className="px-6 py-3 text-left">Email</th>
-                      <th className="px-6 py-3 text-left">Status</th>
-                      <th className="px-6 py-3 text-left">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {users.map((user) => (
-                      <tr key={user._id}>
-                        <td className="px-6 py-3">{user._id}</td>
-                        <td className="px-6 py-3">{user.name}</td>
-                        <td className="px-6 py-3">{user.email}</td>
-                        <td className="px-6 py-3">{user.status}</td>
-                        <td className="px-6 py-3 flex space-x-2">
-                          <button className="bg-yellow-500 text-white px-4 py-2 rounded">
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDelete(user._id)}
-                            className="bg-red-500 text-white px-4 py-2 rounded"
-                          >
-                            Delete
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-
-              {activeTab === "guides" && (
-                <table className="min-w-full bg-white shadow-md rounded-lg">
-                  <thead>
-                    <tr>
-                      <th className="px-6 py-3 text-left">Guide ID</th>
-                      <th className="px-6 py-3 text-left">Name</th>
-                      <th className="px-6 py-3 text-left">Destination</th>
-                      <th className="px-6 py-3 text-left">Experience</th>
-                      <th className="px-6 py-3 text-left">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {guides.map((guide) => (
-                      <tr key={guide._id}>
-                        <td className="px-6 py-3">{guide._id}</td>
-                        <td className="px-6 py-3">{guide.name}</td>
-                        <td className="px-6 py-3">{guide.destination}</td>
-                        <td className="px-6 py-3">{guide.experience}</td>
-                        <td className="px-6 py-3 flex space-x-2">
-                          <button className="bg-yellow-500 text-white px-4 py-2 rounded">
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDelete(guide._id)}
-                            className="bg-red-500 text-white px-4 py-2 rounded"
-                          >
-                            Delete
-                          </button>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {users.slice(0, 10).map((user, index) => (
+                      <tr key={user._id || index}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{user.username}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.email}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${index % 3 === 0 ? 'bg-green-100 text-green-800' : index % 3 === 1 ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'}`}>
+                            {index % 3 === 0 ? 'Active' : index % 3 === 1 ? 'Pending' : 'Inactive'}
+                          </span>
                         </td>
                       </tr>
                     ))}
@@ -276,11 +229,105 @@ const AdminDashboard = () => {
                 </table>
               )}
             </div>
-          )}
+          </DashboardSection>
+
+          <DashboardSection title="Guide List" icon={<UserCheck size={18} className="text-orange-600" />}>
+            <div className="overflow-auto max-h-64">
+              {guides.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <UserCheck className="mx-auto mb-3 h-12 w-12 text-gray-300" />
+                  <p>No guides available</p>
+                </div>
+              ) : (
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Specialty</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Experience</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {guides.slice(0, 5).map((guide, index) => (
+                      <tr key={guide._id || index}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{guide.name}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{guide.specialty || "General"}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{guide.experience || "N/A"} {guide.experience ? "years" : ""}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </DashboardSection>
         </div>
+
+        <main className="mt-8">
+          <Outlet />
+        </main>
       </div>
     </div>
   );
 };
+
+// Helper functions for booking status
+const getBookingStatus = (booking) => {
+  if (booking.status) return booking.status;
+  
+  const today = new Date();
+  const checkIn = booking.checkInDate ? new Date(booking.checkInDate) : null;
+  const checkOut = booking.checkOutDate ? new Date(booking.checkOutDate) : null;
+  
+  if (!checkIn || !checkOut) return "Incomplete";
+  if (today < checkIn) return "Upcoming";
+  if (today >= checkIn && today <= checkOut) return "Active";
+  return "Completed";
+};
+
+const getStatusClass = (booking) => {
+  const status = booking.status || getBookingStatus(booking);
+  
+  switch(status.toLowerCase()) {
+    case "confirmed":
+    case "active":
+      return "bg-green-100 text-green-800";
+    case "pending":
+    case "upcoming":
+      return "bg-yellow-100 text-yellow-800";
+    case "cancelled":
+      return "bg-red-100 text-red-800";
+    case "completed":
+      return "bg-purple-100 text-purple-800";
+    default:
+      return "bg-gray-100 text-gray-800";
+  }
+};
+
+const DashboardCard = ({ title, value, icon, trend, trendUp }) => (
+  <div className="bg-white rounded-xl shadow-md p-6 flex flex-col">
+    <div className="flex items-center mb-2">
+      <div className="rounded-full bg-gray-100 p-3 mr-3">{icon}</div>
+      <p className="text-gray-600 font-medium">{title}</p>
+    </div>
+    <p className="text-3xl font-bold mb-2">{value}</p>
+    {trend && (
+      <p className={`text-xs ${trendUp ? "text-green-600" : "text-red-600"}`}>
+        {trend}
+      </p>
+    )}
+  </div>
+);
+
+const DashboardSection = ({ title, children, icon }) => (
+  <div className="bg-white rounded-xl shadow-md overflow-hidden">
+    <div className="p-5 border-b flex items-center">
+      {icon}
+      <h2 className="text-xl font-semibold ml-2">{title}</h2>
+    </div>
+    <div className="p-5">
+      {children}
+    </div>
+  </div>
+);
 
 export default AdminDashboard;
