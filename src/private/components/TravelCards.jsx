@@ -1,6 +1,6 @@
+import axios from "axios";
 import React, { useState } from "react";
 import { FaHeart } from "react-icons/fa";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 const TravelCards = ({ headline, destinations }) => {
@@ -31,7 +31,9 @@ const TravelCards = ({ headline, destinations }) => {
       );
 
       if (isAlreadyInBucketList) {
-        setBucketlist(BucketList.filter((item) => item._id !== destination._id));
+        setBucketlist(
+          BucketList.filter((item) => item._id !== destination._id)
+        );
       } else {
         setBucketlist([...BucketList, destination]);
         await axios.post("http://localhost:3000/api/bucket-list/", destination);
@@ -43,8 +45,6 @@ const TravelCards = ({ headline, destinations }) => {
 
   return (
     <div className="flex flex-col items-center w-full h-full bg-white/5">
-      {headline && <div className="text-4xl font-serif p-12">{headline}</div>}
-
       <div className="flex items-center justify-center mb-12 w-full rounded-[20px]">
         {/* Pagination buttons */}
         <div className="flex items-center space-x-4">
@@ -72,7 +72,7 @@ const TravelCards = ({ headline, destinations }) => {
                   <img
                     src={
                       "http://localhost:3000/destinations_image/" +
-                      destination.image || "https://via.placeholder.com/150"
+                        destination.image || "https://via.placeholder.com/150"
                     }
                     alt={destination.title}
                     className="w-full h-full object-cover"
@@ -80,15 +80,17 @@ const TravelCards = ({ headline, destinations }) => {
                   />
                   {/* Favorite button */}
                   <FaHeart
-                  className={`absolute top-4 right-4 cursor-pointer text-2xl ${
-                    BucketList.some((item) => item._id === destination._id)
-                      ? "text-red-600"
-                      : "text-gray-700 hover:text-red-600"
-                  }`}
-                  onClick={() => toggleBucketList(destination)}
-                />
+                    className={`absolute top-4 right-4 cursor-pointer text-2xl ${
+                      BucketList.some((item) => item._id === destination._id)
+                        ? "text-red-600"
+                        : "text-gray-700 hover:text-red-600"
+                    }`}
+                    onClick={() => toggleBucketList(destination)}
+                  />
                   <div className="absolute bottom-0 left-0 right-0 p-5 bg-black/40">
-                    <h2 className="m-0 text-white text-lg">{destination.title}</h2>
+                    <h2 className="m-0 text-white text-lg">
+                      {destination.title}
+                    </h2>
                     {/* <p className="text-sm text-white truncate overflow-hidden text-ellipsis whitespace-nowrap">
                       {destination.description}
                     </p> */}
