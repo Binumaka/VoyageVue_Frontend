@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import {Clock} from 'lucide-react';
+import { Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 
 const TourCards = ({ headline, destinations }) => {
@@ -18,77 +18,72 @@ const TourCards = ({ headline, destinations }) => {
     );
   };
 
-  const gototourpackagesdetails = (id) => {
+  const gotoTourPackagesDetails = (id) => {
     navigate(`/tourpackagesdetails/${id}`);
   };
 
   return (
-    <div className="flex flex-col items-center w-full h-full bg-white/5">
-      {headline && <div className="text-4xl font-serif p-8">{headline}</div>}
-
-      <div className="flex items-center justify-center mb-12 w-full rounded-[20px]">
-        {/* Pagination buttons */}
-        <div className="flex items-center space-x-4">
+    <div className="w-full py-4 bg-gradient-to-b from-white to-gray-50">
+      <div className="pl-8 max-w-full mx-auto px-4">
+        <div className="relative">
           {startIndex > 0 && (
             <button
               onClick={handlePrev}
-              className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 bg-black/3"
+              className="absolute left-0 top-1/2 -translate-y-1/2 -ml-4 w-12 h-12 flex items-center justify-center rounded-full bg-white shadow-lg hover:bg-gray-100 z-10 transition-all duration-300"
             >
-              <img
-                src="/src/images/left-chevron.png"
-                alt="Previous"
-                className="w-6 h-6"
-              />
+              <ChevronLeft className="w-6 h-6 text-gray-800" />
             </button>
           )}
-          <div className="flex flex-wrap justify-between gap-8">
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-20">
             {Array.isArray(destinations) && destinations.length > 0 ? (
               destinations.slice(startIndex, endIndex).map((destination) => (
                 <div
                   key={destination._id}
-                  className="relative w-[320px] h-[300px] rounded-[12px] overflow-hidden
-                  shadow-md hover:transform hover:scale-105 hover:shadow-lg
-                  transition-transform duration-300 cursor-pointer"
+                  className=" relative w-[320px] h-[300px] rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300"
+                  onClick={() => gotoTourPackagesDetails(destination._id)}
                 >
-                  <img
-                    src={
-                      "http://localhost:3000/destinations_image/" +
-                      destination.image || "https://via.placeholder.com/150"
-                    }
-                    alt={destination.title}
-                    className="w-full h-full object-cover"
-                    onClick={() => gototourpackagesdetails(destination._id)}
-                  />
-                  <div className="absolute bottom-0 left-0 right-0 p-2 bg-black/40">
-                    <h2 className="m-0 text-white text-lg">{destination.title}</h2>
-                    <h2 className="m-0 text-white text-lg">$ {destination.price}</h2>
+                  <div className="aspect-w-4 aspect-h-2 w-full h-full">
+                    <img
+                      src={
+                        "http://localhost:3000/destinations_image/" +
+                        destination.image || "https://via.placeholder.com/150"
+                      }
+                      alt={destination.title}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                    <div className="absolute bottom-0 left-0 right-0 p-5 bg-black/40">
+                    <h2 className="m-0 text-white text-lg">
+                      {destination.title}
+                    </h2>
+                    <p className="text-sm text-white fon-bold truncate overflow-hidden text-ellipsis whitespace-nowrap">
+                      $ {destination.price}
+                    </p>
                   </div>
+                  </div>
+                  
+                  {/* Duration badge */}
                   <div className="absolute top-4 right-4">
-                      <div className="bg-white/90 backdrop-blur px-4 py-2 rounded-full">
-                        <div className="flex items-center space-x-1">
-                          <Clock className="w-4 h-4 text-red-700" />
-                          <span className="text-sm font-medium text-gray-800">
-                            {destination.duration}
-                          </span>
-                        </div>
-                      </div>
+                    <div className="bg-white rounded-full px-3 py-1 shadow-md flex items-center">
+                      <Clock className="w-4 h-4 text-red-600 mr-1" />
+                      <span className="text-sm font-medium">{destination.duration}</span>
                     </div>
+                  </div>
                 </div>
               ))
             ) : (
-              <p className="text-gray-500">No destinations available.</p>
+              <div className="col-span-4 text-center py-8">
+                <p className="text-gray-500 text-lg">No destinations available.</p>
+              </div>
             )}
           </div>
+
           {endIndex < destinations.length && (
             <button
               onClick={handleNext}
-              className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 bg-black/3"
+              className="absolute right-0 top-1/2 -translate-y-1/2 -mr-4 w-12 h-12 flex items-center justify-center rounded-full bg-white shadow-lg hover:bg-gray-100 z-10 transition-all duration-300"
             >
-              <img
-                src="/src/images/chevron.png"
-                alt="Next"
-                className="w-6 h-6"
-              />
+              <ChevronRight className="w-6 h-6 text-gray-800" />
             </button>
           )}
         </div>
