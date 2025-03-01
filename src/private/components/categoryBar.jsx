@@ -1,25 +1,37 @@
 import { useEffect, useState } from "react";
-import { ChevronRight, ChevronLeft } from "lucide-react";
+import { ChevronRight, ChevronLeft, Tag } from "lucide-react";
 
 const CategoryBar = ({ onCategorySelect }) => {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [error, setError] = useState(null);
   const [categoryDestinations, setCategoryDestinations] = useState({});
-  const [visibleIndex, setVisibleIndex] = useState(0); // Controls pagination
+  const [visibleIndex, setVisibleIndex] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
 
-  const predefinedCategories = [
-    { name: "HimalayanTreks" },
-    { name: "Cultural Heritage" },
-    { name: "city" },
-    { name: "Lake and River" },
-    { name: "National park" },
-    { name: "Wild Life" },
-    { name: "Temple And Monastries" },
-    { name: "Nature" },
-    { name: "Adventure" },
-    { name: "Camping" },
-    { name: "Festival And Event" }
+  const categories = [
+    { name: "HimalayanTreks", icon: "🏔️" },
+    { name: "Cultural Heritage", icon: "🏛️" },
+    { name: "city", icon: "🏙️" },
+    { name: "Lake and River", icon: "🌊" },
+    { name: "National park", icon: "🌳" },
+    { name: "Wild Life", icon: "🦁" },
+    { name: "Temple And Monastries", icon: "🛕" },
+    { name: "Nature", icon: "🌿" },
+    { name: "Adventure", icon: "🧗" },
+    { name: "Camping", icon: "⛺" },
+    { name: "Festival And Event", icon: "🎭" }
   ];
+
+  // Handle responsive design
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    handleResize(); // Initial check
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     fetchDestinations();
@@ -30,7 +42,7 @@ const CategoryBar = ({ onCategorySelect }) => {
       const response = await fetch("http://localhost:3000/api/destination");
       const data = await response.json();
 
-      const destinationsMap = predefinedCategories.reduce((acc, category) => {
+      const destinationsMap = categories.reduce((acc, category) => {
         acc[category.name] = 0;
         return acc;
       }, {});
@@ -43,7 +55,7 @@ const CategoryBar = ({ onCategorySelect }) => {
 
       setCategoryDestinations(destinationsMap);
 
-      const firstAvailableCategory = predefinedCategories.find(cat => destinationsMap[cat.name] > 0)?.name || predefinedCategories[0].name;
+      const firstAvailableCategory = categories.find(cat => destinationsMap[cat.name] > 0)?.name || categories[0].name;
       setSelectedCategory(firstAvailableCategory);
       onCategorySelect(firstAvailableCategory);
     } catch (err) {
@@ -61,60 +73,88 @@ const CategoryBar = ({ onCategorySelect }) => {
   };
 
   const handleNext = () => {
-    if (visibleIndex + 2 < predefinedCategories.length) {
-      setVisibleIndex(visibleIndex + 2);
+    const itemsPerPage = isMobile ? 3 : 6;
+    if (visibleIndex + itemsPerPage < categories.length) {
+      setVisibleIndex(visibleIndex + 1);
     }
   };
 
   const handlePrev = () => {
     if (visibleIndex > 0) {
-      setVisibleIndex(visibleIndex - 2);
+      setVisibleIndex(visibleIndex - 1);
     }
   };
 
   if (error) {
     return (
-      <div className="w-full bg-red-50 rounded-lg">
-        <p className="text-red-500 text-center">{error}</p>
+      <div className="w-full p-4 bg-red-50 rounded-lg">
+        <p className="text-red-500 text-center font-medium">{error}</p>
       </div>
     );
   }
 
-  return (
-    <div className="relative w-full bg-gray/50 pt-8 pb-4 shadow-md">
-      <div className="flex items-center justify-between">
-        {visibleIndex > 0 && (
-          <button
-            onClick={handlePrev}
-            className="h-10 w-10 flex items-center justify-center rounded-full bg-white shadow-lg transition-all hover:bg-gray-100"
-          >
-            <ChevronLeft className="h-5 w-5 text-gray-600" />
-          </button>
-        )}
+  const itemsPerPage = isMobile ? 3 : 6;
+  const visibleCategories = categories.slice(visibleIndex, visibleIndex + itemsPerPage);
 
-        <div className="grid grid-cols-8 gap-4 w-full pl-6">
-          {predefinedCategories.slice(visibleIndex, visibleIndex + 8).map(({ name }) => (
+  return (
+    <div className="relative w-full bg-gray-100 pt-6 pb-6 rounded-xl shadow-sm">
+      <div className="max-w-full mx-auto px-4">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-bold text-gray-800 flex items-center">
+            <Tag className="mr-2 h-5 w-5 text-blue-600" />
+            Explore Categories
+          </h3>
+          <div className="flex space-x-2">
             <button
-              key={name}
-              onClick={() => handleCategoryClick(name)}
-              className={`flex flex-col items-center transition-all duration-300 ${
-                selectedCategory === name ? "rounded-lg ring-2 ring-blue-400 ring-offset-2 transform scale-105 text-blue-800 font-bold" 
-                : "hover:scale-105"
-              }`}
+              onClick={handlePrev}
+              disabled={visibleIndex === 0}
+              className={`h-8 w-8 flex items-center justify-center rounded-full 
+                ${visibleIndex === 0 
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                  : 'bg-white shadow-md hover:bg-blue-50 text-blue-600'}`}
             >
-              <span className="text-sm font-medium whitespace-nowrap text-center">{name}</span>
+              <ChevronLeft className="h-5 w-5" />
             </button>
-          ))}
+            <button
+              onClick={handleNext}
+              disabled={visibleIndex + itemsPerPage >= categories.length}
+              className={`h-8 w-8 flex items-center justify-center rounded-full 
+                ${visibleIndex + itemsPerPage >= categories.length
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                  : 'bg-white shadow-md hover:bg-blue-50 text-blue-600'}`}
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+          </div>
         </div>
 
-        {visibleIndex + 8 < predefinedCategories.length && (
-          <button
-            onClick={handleNext}
-            className="h-10 w-10 flex items-center justify-center rounded-full bg-white shadow-lg transition-all hover:bg-gray-100"
-          >
-            <ChevronRight className="h-5 w-5 text-gray-600" />
-          </button>
-        )}
+        <div className={`grid ${isMobile ? 'grid-cols-3' : 'grid-cols-6'} gap-3`}>
+          {visibleCategories.map(({ name, icon }) => {
+            const count = categoryDestinations[name] || 0;
+            return (
+              <button
+                key={name}
+                onClick={() => handleCategoryClick(name)}
+                className={`flex flex-col items-center justify-center p-3 rounded-lg transition-all duration-300
+                  ${selectedCategory === name 
+                    ? 'bg-blue-300 text-black shadow-lg transform scale-105' 
+                    : 'bg-white hover:bg-blue-50 hover:shadow hover:scale-105'}`}
+              >
+                <span className="text-2xl mb-1">{icon}</span>
+                <span className="text-xs font-medium text-center line-clamp-1">{name}</span>
+                {count > 0 && (
+                  <span className={`text-xs mt-1 px-2 py-1 rounded-full ${
+                    selectedCategory === name 
+                      ? 'bg-white text-blue-600' 
+                      : 'bg-blue-100 text-blue-800'
+                  }`}>
+                    {count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

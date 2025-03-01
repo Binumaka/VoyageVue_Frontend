@@ -4,7 +4,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const Navbar = () => {
-  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
   const { isLoggedIn, userId } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -24,24 +23,8 @@ const Navbar = () => {
             </Link>
           </div>
 
-          {/* Search Bar */}
-          <div className="flex-1 max-w-md mx-8">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search Places here ..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-2 pl-10 pr-4 rounded-md border border-gray-300 focus:outline-none focus:border-indigo-500"
-              />
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-5 w-8 text-gray-400" />
-              </div>
-            </div>
-          </div>
-
           {/* Navigation Links */}
-          <div className="hidden md:flex items-center space-x-20">
+          <div className="hidden flex md:flex space-x-20">
             <Link
               to="/destinations"
               className="text-gray-700 hover:text-gray-900"
@@ -58,12 +41,10 @@ const Navbar = () => {
               to="/tourpackagelist"
               className="text-gray-700 hover:text-gray-900"
             >
-              Packages
+              Tour Packages
             </Link>
-          </div>
-
+          
           {/* Icons */}
-          <div className="flex items-center space-x-14">
             <button
               className="text-gray-700 hover:text-gray-900"
               onClick={() => navigate("/bucket-list")}

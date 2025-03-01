@@ -29,11 +29,12 @@ const TourPackageslist = () => {
     return (
         <div>
             <Navbar/>
+            <div className='p-4'>
             <TourCards 
-                headline="Tour Packages for your vacation" 
                 section="TourPackages" 
                 destinations={destinations} 
             />
+            </div>
         </div>
     );
 };
