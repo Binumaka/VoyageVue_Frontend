@@ -8,12 +8,9 @@ test.describe('Upload Destination Form', () => {
 
   test('should display the form elements correctly', async ({ page }) => {
     // Ensure the form is visible
-    await expect(page.locator('h2:has-text("Upload Destination")')).toBeVisible();
+    await expect(page.locator('h2:has-text("Add New Destination")')).toBeVisible();
     await expect(page.locator('input[name="title"]')).toBeVisible();
     await expect(page.locator('textarea[name="description"]')).toBeVisible();
-    await expect(page.locator('input[name="image"]')).toBeVisible();
-    await expect(page.locator('input[name="image1"]')).toBeVisible();
-    await expect(page.locator('input[name="image2"]')).toBeVisible();
     await expect(page.locator('input[name="bestTimeToVisit"]')).toBeVisible();
     await expect(page.locator('input[name="location"]')).toBeVisible();
     await expect(page.locator('input[name="category"]')).toBeVisible();

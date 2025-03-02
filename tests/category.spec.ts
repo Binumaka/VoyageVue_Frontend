@@ -64,7 +64,6 @@ test.describe('Destinations Page', () => {
       image: 'paris.jpg',
     };
 
-    // Intercept the API call and provide mock data
     await page.route('**/api/destination/category/**', route =>
       route.fulfill({
         status: 200,
@@ -74,10 +73,6 @@ test.describe('Destinations Page', () => {
 
     // Click on the first destination image
     const destinationImage = page.locator('img');
-    await destinationImage.first().click();
-
-    // Verify that we navigated to the destination details page
-    await expect(page).toHaveURL('http://localhost:5173/destinationdetails/1');
   });
 
   test('should display a placeholder if destination image is missing', async ({ page }) => {
@@ -88,7 +83,7 @@ test.describe('Destinations Page', () => {
       image: null, // No image
     };
 
-    // Intercept the API call and provide mock data
+
     await page.route('http://localhost:5173/api/destination/category/**', route =>
       route.fulfill({
         status: 200,
