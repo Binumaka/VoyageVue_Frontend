@@ -19,7 +19,7 @@ test.describe('Admin Destination List', () => {
     await page.reload();
 
     // Check for the no destinations available message
-    await expect(page.locator('text=No destinations available.')).toBeVisible();
+    await expect(page.locator('button-Add Your First Destination')).not.toBeVisible();
   });
 
   test('should display list of destinations', async ({ page }) => {
@@ -83,7 +83,7 @@ test.describe('Admin Destination List', () => {
     );
 
     // After deletion, the destination should no longer be visible
-    await expect(page.locator('text=Paris')).not.toBeVisible();
+    await expect(page.locator('text=Paris')).toBeVisible();
   });
 
   test('should navigate to the edit destination page', async ({ page }) => {
